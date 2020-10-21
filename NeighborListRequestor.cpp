@@ -69,7 +69,7 @@ void NeighborListRequestor::stop() {
     requestorThread.join();
 }
 
-NeighborListRequestor::NeighborListRequestor(int heartbeatWindow, string homeName, string nodeName, NeighborList *neighborList) : m_face(), m_scheduler(m_face.getIoService()) /*m_face(m_ioService), m_scheduler(m_ioService)*/
+NeighborListRequestor::NeighborListRequestor(int heartbeatWindow, string homeName, string nodeName, NeighborList *neighborList) : m_face(), m_scheduler(m_face.getIoService()) 
 {
     this->homeName = homeName;
     this->nodeName = nodeName;
