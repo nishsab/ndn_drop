@@ -2,3 +2,5 @@
 cmake-build-debug/
 *.dSYM
 *~
+*.log
+ndn_drop
