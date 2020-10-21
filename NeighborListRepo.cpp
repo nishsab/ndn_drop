@@ -53,25 +53,18 @@ void NeighborListRepo::setInterestFilter() {
                 NDN_THROW(std::runtime_error("Failed to register prefix: " + reason));
             });
     face.processEvents();
-    cout << "after filter" << endl;
 }
 
 void NeighborListRepo::stop() {
     m_thread.join();
 }
 
-NeighborListRepo::NeighborListRepo(Face &face, string homeName, string nodeName, NeighborList *neighborList) : m_face(face), face(m_ioService) {
-    //face.getIoService().run();
+NeighborListRepo::NeighborListRepo(Face &face, string homeName, string nodeName, NeighborList *neighborList) : face(m_ioService) {
     m_ioService.run();
-    cout << "a" << endl;
     this->homeName = homeName;
-    cout << "b" << endl;
     this->nodeName = nodeName;
-    cout << "c" << endl;
     this->neighborList = neighborList;
-    cout << "d" << endl;
 
     m_thread = thread(&NeighborListRepo::setInterestFilter, this);
-    cout << "e" << endl;
 }
 

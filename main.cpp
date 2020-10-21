@@ -37,14 +37,10 @@ public:
     }
 
     MyController(string home, string node) {
-        cout << "1" << endl;
         neighborList = new NeighborList(Config::heartbeatWindow);
-        cout << "2" << endl;
         Face face;
         neighborListRepo = new NeighborListRepo(face, home, node, neighborList);
-        cout << "3" << endl;
         neighborListRequestor = new NeighborListRequestor(Config::heartbeatWindow, home, node, neighborList);
-        cout << "4" << endl;
     }
 
 private:
@@ -64,14 +60,11 @@ int main(int argc, char* argv[])
     string home = argv[2];
     string node = argv[3];
     cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << endl;
-    //NeighborList *neighborList = new NeighborList(5);
-    //NeighborListRequestor *neighborListRequestor = new NeighborListRequestor(home, node, neighborList);
     MyController myController = MyController(home, node);
     Server server(port);
     server.registerController(&myController);
 
     server.start();
-    cout << "ola" << endl;
     while (1) {
         sleep(10);
     }

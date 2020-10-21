@@ -3,4 +3,4 @@ project(ndn_drop)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(ndn_drop newcon.cpp NeighborList.cpp NeighborList.h main.cpp build/Utils.cpp build/Utils.h Utils.cpp Utils.h NeighborListRequestor.cpp NeighborListRequestor.h NeighborListName.cpp NeighborListName.h NeighborListRepo.cpp NeighborListRepo.h Config.h)
+add_executable(ndn_drop NeighborList.cpp NeighborList.h main.cpp build/Utils.cpp build/Utils.h Utils.cpp Utils.h NeighborListRequestor.cpp NeighborListRequestor.h NeighborListName.cpp NeighborListName.h NeighborListRepo.cpp NeighborListRepo.h Config.h)

@@ -28,7 +28,6 @@ private:
     NeighborList *neighborList;
     KeyChain keyChain;
     thread m_thread;
-    Face &m_face;
 };
 
 
