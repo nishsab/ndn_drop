@@ -8,10 +8,11 @@
 #include <mongoose/Server.h>
 #include <mongoose/WebController.h>
 #include "NeighborList.h"
-#include "Config.h"
 #include "NeighborListRepo.h"
 #include "NeighborListRequestor.h"
 #include "NeighborListName.h"
+#include "Conf.h"
+#include "DirectoryCrawler.h"
 
 using namespace std;
 using namespace Mongoose;
@@ -36,11 +37,12 @@ public:
         addRoute("GET", "/get_neighbors", MyController, getNeighbors);
     }
 
-    MyController(string home, string node) {
-        neighborList = new NeighborList(Config::heartbeatWindow);
+    MyController(string home, string node, Conf conf) {
+        neighborList = new NeighborList(conf.heartbeatWindow);
         Face face;
         neighborListRepo = new NeighborListRepo(face, home, node, neighborList);
-        neighborListRequestor = new NeighborListRequestor(Config::heartbeatWindow, home, node, neighborList);
+        neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, neighborList);
+        DirectoryCrawler directoryCrawler = DirectoryCrawler(conf.outboundDirectory);
     }
 
 private:
@@ -52,15 +54,17 @@ private:
 
 int main(int argc, char* argv[])
 {
-    if (argc != 4) {
-        cout << "Usage: ./main port home node" << endl;
+    if (argc != 5) {
+        cout << "Usage: ./main port home node conf" << endl;
         return 0;
     }
     int port = atoi(argv[1]);
     string home = argv[2];
     string node = argv[3];
-    cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << endl;
-    MyController myController = MyController(home, node);
+    string confPath = argv[4];
+    Conf conf = Conf(confPath);
+    cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << "Conf: " << confPath << endl;
+    MyController myController = MyController(home, node, conf);
     Server server(port);
     server.registerController(&myController);
 

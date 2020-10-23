@@ -7,7 +7,6 @@
 #include "NeighborListName.h"
 #include "Utils.h"
 #include <vector>
-#include "Config.h"
 
 using namespace std;
 
