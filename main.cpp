@@ -13,6 +13,8 @@
 #include "NeighborListName.h"
 #include "Conf.h"
 #include "DirectoryCrawler.h"
+#include "FileRepo.h"
+#include "FileRequestor.h"
 
 using namespace std;
 using namespace Mongoose;
@@ -31,10 +33,18 @@ public:
         response << neighbors;
     }
 
+    void getFileList(Request &request, StreamResponse &response)
+    {
+        string owner = request.get("owner", "");
+        string fileList = fileRequestor->getFileList(owner);
+        response << fileList;
+    }
+
     void setup()
     {
         addRoute("GET", "/hello", MyController, hello);
         addRoute("GET", "/get_neighbors", MyController, getNeighbors);
+        addRoute("GET", "/get_file_list", MyController, getFileList);
     }
 
     MyController(string home, string node, Conf conf) {
@@ -42,13 +52,17 @@ public:
         Face face;
         neighborListRepo = new NeighborListRepo(face, home, node, neighborList);
         neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, neighborList);
-        DirectoryCrawler directoryCrawler = DirectoryCrawler(conf.outboundDirectory);
+        DirectoryCrawler *directoryCrawler = new DirectoryCrawler(conf.outboundDirectory);
+        fileRepo = new FileRepo(face, home, node, directoryCrawler);
+        fileRequestor = new FileRequestor(home, node);
     }
 
 private:
     NeighborList *neighborList;
     NeighborListRepo *neighborListRepo;
     NeighborListRequestor *neighborListRequestor;
+    FileRepo *fileRepo;
+    FileRequestor *fileRequestor;
 };
 
 

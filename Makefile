@@ -1,5 +1,5 @@
 TARGETS = ndn_drop
-SOURCES = main.cpp NeighborList.cpp Utils.cpp NeighborListRequestor.cpp NeighborListName.cpp NeighborListRepo.cpp Conf.cpp DirectoryCrawler.cpp
+SOURCES = main.cpp NeighborList.cpp Utils.cpp NeighborListRequestor.cpp NeighborListName.cpp NeighborListRepo.cpp Conf.cpp DirectoryCrawler.cpp FileName.cpp FileRepo.cpp FileRequestor.cpp IdentityName.cpp
 CFLAGS = `pkg-config --cflags --libs libndn-cxx`
 STATIC_LIBS = -l mongoose
 all: clean $(TARGETS)
