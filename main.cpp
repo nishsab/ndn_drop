@@ -53,7 +53,7 @@ public:
         neighborListRepo = new NeighborListRepo(face, home, node, neighborList);
         neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, neighborList);
         DirectoryCrawler *directoryCrawler = new DirectoryCrawler(conf.outboundDirectory);
-        fileRepo = new FileRepo(face, home, node, directoryCrawler);
+        fileRepo = new FileRepo(face, home, node, directoryCrawler, conf.fileListLocation);
         fileRequestor = new FileRequestor(home, node);
     }
 
