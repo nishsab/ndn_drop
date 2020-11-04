@@ -25,6 +25,7 @@ Conf::Conf(string filename) {
     heartbeatWindow = atoi(getString(configs, "heartbeatWindow").c_str());
     outboundDirectory = getString(configs, "outboundDirectory");
     inboundDirectory = getString(configs, "inboundDirectory");
+    fileListLocation = getString(configs, "fileListLocation");
 }
 
 string Conf::getString(unordered_map<string, string> configs, string key) {

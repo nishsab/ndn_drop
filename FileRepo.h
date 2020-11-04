@@ -15,7 +15,7 @@ using namespace std;
 
 class FileRepo {
 public:
-    FileRepo(Face &face, string homeName, string nodeName, DirectoryCrawler *directoryCrawler);
+    FileRepo(Face &face, string homeName, string nodeName, DirectoryCrawler *directoryCrawler, string fileListLocation);
     void stop();
 
 private:
@@ -29,6 +29,7 @@ private:
     DirectoryCrawler *directoryCrawler;
     KeyChain keyChain;
     thread m_thread;
+    string fileListLocation;
 };
 
 

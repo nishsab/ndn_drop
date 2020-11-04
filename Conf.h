@@ -15,6 +15,7 @@ public:
     int heartbeatWindow;
     string outboundDirectory;
     string inboundDirectory;
+    string fileListLocation;
 private:
     string getString(unordered_map<string, string> configs, string key);
 };
