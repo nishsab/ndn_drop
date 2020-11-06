@@ -36,6 +36,7 @@ class FileMetadata:
         self.modification_time = file_info.modification_time
         self.size = file_info.size
         self.num_segs = file_info.num_segs
+        self.block_size = file_info.block_size
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, 
             sort_keys=True, indent=4)
@@ -68,7 +69,11 @@ class DirectoryMonitor:
         return new_files
     def persist(self):
         file_infos = list(self.tracked_files.values())
-        data = json.dumps({"files": file_infos}, default = lambda x: x.__dict__, indent=4, sort_keys=True)
+        file_metadatas = []
+        for file_info in file_infos:
+            file_metadata = FileMetadata(file_info)
+            file_metadatas.append(file_metadata)
+        data = json.dumps({"files": file_metadatas}, default = lambda x: x.__dict__, indent=4, sort_keys=True)
         with open(self.metadata_tmp, "w") as fd:
             fd.write(data)
         os.rename(self.metadata_tmp, self.metadata_path)
