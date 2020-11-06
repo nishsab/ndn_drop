@@ -15,6 +15,7 @@
 #include "DirectoryCrawler.h"
 #include "FileRepo.h"
 #include "FileRequestor.h"
+#include "FileDownloader.h"
 
 using namespace std;
 using namespace Mongoose;
@@ -40,11 +41,28 @@ public:
         response << fileList;
     }
 
+    void getFile(Request &request, StreamResponse &response)
+    {
+        string ndnName = request.get("ndn_name", "");
+        string numBlocks = request.get("num_blocks", "");
+        string filename = request.get("file_name", "");
+        string fileSize = request.get("file_size", "");
+        string blockSize = request.get("block_size", "");
+        if (ndnName.empty() || filename.empty() || numBlocks.empty() || fileSize.empty() || blockSize.empty()) {
+            response << "{\"status\": \"error\", \"reason\": \"ndn_name, file_name, num_blocks and block_size are required arguments.\"}";
+        }
+        else {
+            string status = fileDownloader->getFile(ndnName, stoi(numBlocks), filename, stoi(fileSize), stoi(blockSize));
+            response << status;
+        }
+    }
+
     void setup()
     {
         addRoute("GET", "/hello", MyController, hello);
         addRoute("GET", "/get_neighbors", MyController, getNeighbors);
         addRoute("GET", "/get_file_list", MyController, getFileList);
+        addRoute("GET", "/get_file", MyController, getFile);
     }
 
     MyController(string home, string node, Conf conf) {
@@ -55,6 +73,7 @@ public:
         DirectoryCrawler *directoryCrawler = new DirectoryCrawler(conf.outboundDirectory);
         fileRepo = new FileRepo(face, home, node, directoryCrawler, conf.fileListLocation);
         fileRequestor = new FileRequestor(home, node);
+        fileDownloader = new FileDownloader(conf.inboundDirectory);
     }
 
 private:
@@ -63,6 +82,7 @@ private:
     NeighborListRequestor *neighborListRequestor;
     FileRepo *fileRepo;
     FileRequestor *fileRequestor;
+    FileDownloader *fileDownloader;
 };
 
 
