@@ -26,6 +26,8 @@ Conf::Conf(string filename) {
     outboundDirectory = getString(configs, "outboundDirectory");
     inboundDirectory = getString(configs, "inboundDirectory");
     fileListLocation = getString(configs, "fileListLocation");
+    schemaConfPath = getString(configs, "schemaConfPath");
+    homeCertificateName = getString(configs, "homeCertificateName");
 }
 
 string Conf::getString(unordered_map<string, string> configs, string key) {

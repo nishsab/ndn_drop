@@ -8,11 +8,10 @@
 #include "FileRepo.h"
 #include "FileName.h"
 #include "Utils.h"
-#include "IdentityName.h"
 
 void FileRepo::setInterestFilter() {
     FileName filename = FileName(this->homeName, this->nodeName);
-    Name fileNamePrefix = filename.getFileNamePrefix();
+    Name fileNamePrefix = filename.getFileListName();
     Utils::logf("Listening for file requests on %s\n", fileNamePrefix.toUri().c_str());
     registeredPrefix = face.setInterestFilter(
             fileNamePrefix,
@@ -26,7 +25,6 @@ void FileRepo::setInterestFilter() {
 void FileRepo::onInterest(const Interest& interest)
 {
     Utils::logf("Received an interest: %s\n", interest.getName().toUri().c_str());
-
     try {
         FileName fileName = FileName(interest.getName().toUri());
 
@@ -45,8 +43,7 @@ void FileRepo::onInterest(const Interest& interest)
             data->setFreshnessPeriod(1_s);
             data->setContent(buffer.data(), static_cast<size_t>(buffer.size()));
 
-            keyChain.sign(*data, security::signingByIdentity(IdentityName::getIdentityName(homeName, nodeName)));
-
+            keyChain.sign(*data, security::signingByCertificate(Name(this->homeCertificateName)));
             face.put(*data);
         }
     }
@@ -59,11 +56,12 @@ void FileRepo::stop() {
     m_thread.join();
 }
 
-FileRepo::FileRepo(Face &face, string homeName, string nodeName, DirectoryCrawler *directoryCrawler, string fileListLocation) : face(m_ioService) {
+FileRepo::FileRepo(Face &face, string homeName, string nodeName, DirectoryCrawler *directoryCrawler, string fileListLocation, string homeCertificateName) : face(m_ioService) {
     m_ioService.run();
     this->homeName = homeName;
     this->nodeName = nodeName;
     this->directoryCrawler = directoryCrawler;
     this->fileListLocation = fileListLocation;
     m_thread = thread(&FileRepo::setInterestFilter, this);
+    this->homeCertificateName = homeCertificateName;
 }

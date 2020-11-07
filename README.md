@@ -4,4 +4,72 @@ mongoose
 
 Notes:
 # run nfd:
-sudo nfd-start
+$ sudo nfd-start
+# Load cert into repo
+$ ndnsec-cert-dump /ndn/drop/nishant/phone/KEY/%B3%A6%A7%091%D0hC/NA/%FD%00%00%01u%A0%98%BE%16 -r
+
+Security Notes:
+# Create new identity
+$ ndnsec-keygen /ndn/drop/nishant/phone
+# create request for signature
+$ ndnsec-sign-req /ndn/drop/nishant/phone
+Bv0C2wdDCANuZG4IBGRyb3AIB25pc2hhbnQIBXBob25lCANLRVkICLOmpwkx0GhD
+CAxjZXJ0LXJlcXVlc3QICf0AAAF1oJWYwRQJGAECGQQANu6AFf0BJjCCASIwDQYJ
+KoZIhvcNAQEBBQADggEPADCCAQoCggEBALAUWGr8TjBvRB+hFiucwbY2GaDV8wQ4
+cXn3UQVSntoEKXw2of/JLBSk2ZGLfm+s0lTMSukXmD4tvK1748o9s4yuhHi9REDA
+XsRA4zyrXmea4RS7aC024evox1KVLtd+P2wDEKDNcAb4x/ysaWYxdQoU9IK3kgd4
+FTBSwJL62RYqE911djEVKsKj8wbrG3R7ok7Z8dOfQ65xmM8g/GucRP8OvDxorgz8
+GhMlu0zhGzfI3NvKHglx9TC50fSiXvZYcy3d3uKTSRjNwZlFJDNAKQ9vT0dr02HS
+BE8OgKrsj8f3WTq7w8BA0T2cJwdXCQ+IKB4EsMy4k0ysr9eEMi1NNdMCAwEAARZb
+GwEBHCwHKggDbmRuCARkcm9wCAduaXNoYW50CAVwaG9uZQgDS0VZCAizpqcJMdBo
+Q/0A/Sb9AP4PMjAyMDExMDdUMDI0MjQw/QD/DzIwMjAxMTE3VDAyNDIzORf9AQAu
+Ya6K9QPChokzV5AimomfBp6wgQgDy/KiIcp/LEAxDNFS0kVdrG/jg9Tzn9cW3oPS
+qzE6EaptS4u4YOhExZ1+/MeA+PYWHZwnuowsbGqThNz/Yt843F/ZXfywx/Qr1GiN
+pHSEIVMCjKJfd3z8kiC75nKUFw+GHiqfErtBs6IgmfJtmQYj6R4sHyOxRL5ozXNu
+8h5D3PoYOig+aRi7C6iKAYJuonjeQVNOg/IkzJOOefdgj4D/xSO1dWovu8Rcn8gN
+h9fivDPBeqJgCSuZS8qvoh8VN0mulcg7y+rIyPT6bO3mlf/CIOtfdORd8eqa3C3h
+UpcTZ3BFZmqZAVq5rVet
+# Change to identity of signer
+$ ndnsec-set-default /ndn/drop/nishant
+# sign
+$ ndnsec-cert-gen
+Bv0C2wdDCANuZG4IBGRyb3AIB25pc2hhbnQIBXBob25lCANLRVkICLOmpwkx0GhD
+CAxjZXJ0LXJlcXVlc3QICf0AAAF1oJWYwRQJGAECGQQANu6AFf0BJjCCASIwDQYJ
+KoZIhvcNAQEBBQADggEPADCCAQoCggEBALAUWGr8TjBvRB+hFiucwbY2GaDV8wQ4
+cXn3UQVSntoEKXw2of/JLBSk2ZGLfm+s0lTMSukXmD4tvK1748o9s4yuhHi9REDA
+XsRA4zyrXmea4RS7aC024evox1KVLtd+P2wDEKDNcAb4x/ysaWYxdQoU9IK3kgd4
+FTBSwJL62RYqE911djEVKsKj8wbrG3R7ok7Z8dOfQ65xmM8g/GucRP8OvDxorgz8
+GhMlu0zhGzfI3NvKHglx9TC50fSiXvZYcy3d3uKTSRjNwZlFJDNAKQ9vT0dr02HS
+BE8OgKrsj8f3WTq7w8BA0T2cJwdXCQ+IKB4EsMy4k0ysr9eEMi1NNdMCAwEAARZb
+GwEBHCwHKggDbmRuCARkcm9wCAduaXNoYW50CAVwaG9uZQgDS0VZCAizpqcJMdBo
+Q/0A/Sb9AP4PMjAyMDExMDdUMDI0MjQw/QD/DzIwMjAxMTE3VDAyNDIzORf9AQAu
+Ya6K9QPChokzV5AimomfBp6wgQgDy/KiIcp/LEAxDNFS0kVdrG/jg9Tzn9cW3oPS
+qzE6EaptS4u4YOhExZ1+/MeA+PYWHZwnuowsbGqThNz/Yt843F/ZXfywx/Qr1GiN
+pHSEIVMCjKJfd3z8kiC75nKUFw+GHiqfErtBs6IgmfJtmQYj6R4sHyOxRL5ozXNu
+8h5D3PoYOig+aRi7C6iKAYJuonjeQVNOg/IkzJOOefdgj4D/xSO1dWovu8Rcn8gN
+h9fivDPBeqJgCSuZS8qvoh8VN0mulcg7y+rIyPT6bO3mlf/CIOtfdORd8eqa3C3h
+UpcTZ3BFZmqZAVq5rVet
+^d # enter control-D and certificate outputs:
+Bv0Cygc5CANuZG4IBGRyb3AIB25pc2hhbnQIBXBob25lCANLRVkICLOmpwkx0GhD
+CAJOQQgJ/QAAAXWgmL4WFAkYAQIZBAA27oAV/QEmMIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEAsBRYavxOMG9EH6EWK5zBtjYZoNXzBDhxefdRBVKe2gQp
+fDah/8ksFKTZkYt+b6zSVMxK6ReYPi28rXvjyj2zjK6EeL1EQMBexEDjPKteZ5rh
+FLtoLTbh6+jHUpUu134/bAMQoM1wBvjH/KxpZjF1ChT0greSB3gVMFLAkvrZFioT
+3XV2MRUqwqPzBusbdHuiTtnx059DrnGYzyD8a5xE/w68PGiuDPwaEyW7TOEbN8jc
+28oeCXH1MLnR9KJe9lhzLd3e4pNJGM3BmUUkM0ApD29PR2vTYdIETw6AquyPx/dZ
+OrvDwEDRPZwnB1cJD4goHgSwzLiTTKyv14QyLU010wIDAQABFlQbAQEcJQcjCANu
+ZG4IBGRyb3AIB25pc2hhbnQIA0tFWQgIb1Tmcsq1SCn9AP0m/QD+DzIwMjAxMTA3
+VDAyNDYwNP0A/w8yMDIxMTEwN1QwMjQ2MDMX/QEAolLvOv921pWw728x26Eog2SS
+wS0u9lU9oBrih5mIKHk5POA5tIaJ6RuYMLMAsdmQM2+Q0TGrxUDhuSf/dBiNT7R5
+qm2fE3L85sgOMpqsKadzBsyuxPHJKmnIZzCMNJjPjXcjeUPxIM3JRKEJNwyD3Yyf
+QMUo19ytQS6YrJDI7NAkF/naFk9lxKkrhrfir+XOcHvxWnF9eRvFSVlrQjNmyQwf
+ol9NLATQMzr7sAOuHuOivl/ErcGDaXlo1UaReEHI64/c8kFuAtnt5J9jqtRZ4nNm
+/iKGnhXnLEwvBmN5tWixIbxOMknfv4MJYKIab1eWbv9lPNRxFnyXzURtPs290Q==
+# validate
+$ ndnsec-cert-dump -p -f -
+...paste certificate
+^D
+# install certificate
+$ ndnsec-cert-install -f -
+...
+^D

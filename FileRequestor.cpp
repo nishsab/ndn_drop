@@ -9,8 +9,9 @@
 
 using namespace std;
 
-FileRequestor::FileRequestor(string homeName, string nodeName)
+FileRequestor::FileRequestor(string homeName, string nodeName, string schemaConfPath) : m_validator(m_face)
 {
+    m_validator.load(schemaConfPath);
     this->homeName = homeName;
 }
 
@@ -33,11 +34,25 @@ string FileRequestor::getFileList(string owner) {
 
 void FileRequestor::handleFileListResponse(const Interest&, const Data& data, CallbackBlocker *callbackBlocker)
 {
+    m_validator.validate(data,
+                         bind(&FileRequestor::unpackData, this, _1, callbackBlocker),
+                         bind(&FileRequestor::validationError, this, _2, callbackBlocker));
+}
+
+void FileRequestor::unpackData(const Data& data, CallbackBlocker *callbackBlocker)
+{
     const Block& content = data.getContent();
     string val = string(content.value(), content.value() + content.value_size());
 
     Utils::logf("FileRequestor::handleFileListResponse: %s\n", val.c_str());
     callbackBlocker->val = val;
+}
+
+void FileRequestor::validationError(const ndn::security::ValidationError &error, CallbackBlocker *callbackBlocker) {
+    Utils::errf("FileRequestor::validationError: Received a validation error.\n");
+    ostringstream stream;
+    stream << "{\"status\": \"error\", \"reason\": \"" << error.getInfo() << "\"}";
+    callbackBlocker->val = stream.str();
 }
 
 void FileRequestor::onNack(CallbackBlocker *callbackBlocker)
