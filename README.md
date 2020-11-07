@@ -4,7 +4,9 @@ mongoose
 
 Notes:
 # run nfd:
-sudo nfd-start
+$ sudo nfd-start
+# Load cert into repo
+$ ndnsec-cert-dump /ndn/drop/nishant/phone/KEY/%B3%A6%A7%091%D0hC/NA/%FD%00%00%01u%A0%98%BE%16 -r
 
 Security Notes:
 # Create new identity
