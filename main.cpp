@@ -71,8 +71,8 @@ public:
         neighborListRepo = new NeighborListRepo(face, home, node, neighborList);
         neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, neighborList);
         DirectoryCrawler *directoryCrawler = new DirectoryCrawler(conf.outboundDirectory);
-        fileRepo = new FileRepo(face, home, node, directoryCrawler, conf.fileListLocation);
-        fileRequestor = new FileRequestor(home, node);
+        fileRepo = new FileRepo(face, home, node, directoryCrawler, conf.fileListLocation, conf.homeCertificateName);
+        fileRequestor = new FileRequestor(home, node, conf.schemaConfPath);
         fileDownloader = new FileDownloader(conf.inboundDirectory);
     }
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     string node = argv[3];
     string confPath = argv[4];
     Conf conf = Conf(confPath);
-    cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << "Conf: " << confPath << endl;
+    cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << " Conf: " << confPath << endl;
     MyController myController = MyController(home, node, conf);
     Server server(port);
     server.registerController(&myController);

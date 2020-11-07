@@ -16,6 +16,8 @@ public:
     string outboundDirectory;
     string inboundDirectory;
     string fileListLocation;
+    string schemaConfPath;
+    string homeCertificateName;
 private:
     string getString(unordered_map<string, string> configs, string key);
 };
