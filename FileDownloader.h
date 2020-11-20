@@ -8,6 +8,8 @@
 #include <string>
 #include <ndn-cxx/face.hpp>
 #include "NeighborList.h"
+#include "SecurityPackage.h"
+#include "KeyRequestor.h"
 #include <boost/asio/io_service.hpp>
 
 using namespace std;
@@ -17,19 +19,29 @@ struct CallbackContainer {
     ofstream *stream;
     mutex lock;
     int counter;
+    bool accessError;
 };
 
 class FileDownloader {
 public:
-    FileDownloader(string inboundDirectoryPath);
-    string getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize);
+    FileDownloader(string inboundDirectoryPath, SecurityPackage *securityPackage, string homeCertificateName, string schemaConfPath, string homeName);
+    string getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize, string owner);
 
 private:
     void handleFileResponse(const Interest&, const Data& data, CallbackContainer *callbackContainer, int blockid, int blockSize);
+    string getFileWithAccess(string ndnName, int numBlocks, string filename, int fileSize, int blockSize);
     void onNack();
     void onTimeout();
     Face m_face;
+    KeyChain keyChain;
     string inboundDirectoryPath;
+    SecurityPackage *securityPackage;
+    ValidatorConfig m_validator;
+    Decryptor m_decryptor;
+    string homeCertificateName;
+    string schemaConfPath;
+    KeyRequestor keyRequestor;
+    string homeName;
 };
 
 

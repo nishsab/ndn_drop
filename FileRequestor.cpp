@@ -3,16 +3,28 @@
 //
 
 #include <iostream>
+#include <ndn-cxx/security/signing-helpers.hpp>
 #include "FileRequestor.h"
 #include "Utils.h"
 #include "FileName.h"
+#include <ndn-cxx/util/random.hpp>
 
 using namespace std;
 
-FileRequestor::FileRequestor(string homeName, string nodeName, string schemaConfPath) : m_validator(m_face)
+FileRequestor::FileRequestor(string homeName,
+                             string schemaConfPath,
+                             string homeCertificateName,
+                             string pibLocator,
+                             string tpmLocator)
+: keyChain(pibLocator, tpmLocator),
+  m_face(m_ioService),
+  m_validator(m_face),
+  m_decryptor(keyChain.getPib().getIdentity(Name(homeCertificateName).getPrefix(-4)).getKey(Name(homeCertificateName).getPrefix(-2)),
+            m_validator, keyChain, m_face)
 {
     m_validator.load(schemaConfPath);
     this->homeName = homeName;
+    this->homeCertificateName = homeCertificateName;
 }
 
 string FileRequestor::getFileList(string owner) {
@@ -21,8 +33,18 @@ string FileRequestor::getFileList(string owner) {
     Name fileListname = fileName.getFileListName();
     Utils::logf("FileRequestor::getFileList: Sending request for %s\n", fileListname.toUri().c_str());
     Interest interest(fileListname);
-    interest.setCanBePrefix(true);
-    interest.setMustBeFresh(true);
+
+    ndn::security::SigningInfo signingInfo = security::signingByCertificate(Name(this->homeCertificateName));
+    SignatureInfo info = signingInfo.getSignatureInfo();
+    std::vector<uint8_t> nonce(8);
+    random::generateSecureBytes(nonce.data(), nonce.size());
+    info.setNonce(nonce);
+    info.setTime();
+    info.setSeqNum(0);
+    signingInfo.setSignatureInfo(info);
+    signingInfo.setSignedInterestFormat(ndn::security::SignedInterestFormat::V03);
+    keyChain.sign(interest, signingInfo);
+
     m_face.expressInterest(interest,
                            bind(&FileRequestor::handleFileListResponse, this,  _1, _2, &blocker),
                            bind(&FileRequestor::onNack, this, &blocker),
@@ -41,11 +63,18 @@ void FileRequestor::handleFileListResponse(const Interest&, const Data& data, Ca
 
 void FileRequestor::unpackData(const Data& data, CallbackBlocker *callbackBlocker)
 {
-    const Block& content = data.getContent();
-    string val = string(content.value(), content.value() + content.value_size());
-
-    Utils::logf("FileRequestor::handleFileListResponse: %s\n", val.c_str());
-    callbackBlocker->val = val;
+    Utils::logf("FileRequestor::unpackData: validation succeeded.\n");
+    m_decryptor.decrypt(data.getContent().blockFromValue(),
+                        [=] (ConstBufferPtr content) {
+                            string decryptedContent = std::string(reinterpret_cast<const char*>(content->data()), content->size());
+                            Utils::logf("FileRequestor::unpackData: successfully decrypted content.\n");
+                            callbackBlocker->val = decryptedContent;
+                        },
+                        [=] (const ErrorCode&, const std::string& error) {
+                            Utils::errf("FileRequestor::unpackData: Received a validation error: %s.\n", error.c_str());
+                            callbackBlocker->val = "{\"status\": \"error\", \"reason\": \"Could not decrypt: " + error + ".\"}";
+                        });
+    Utils::logf("FileRequestor::unpackData: done decrypting.\n");
 }
 
 void FileRequestor::validationError(const ndn::security::ValidationError &error, CallbackBlocker *callbackBlocker) {
@@ -63,6 +92,6 @@ void FileRequestor::onNack(CallbackBlocker *callbackBlocker)
 
 void FileRequestor::onTimeout(CallbackBlocker *callbackBlocker)
 {
-    Utils::errf("FileRequestor::onNack: Received a nack.\n");
-    callbackBlocker->val = "{\"status\": \"error\", \"reason\": \"Received a nack.\"}";
+    Utils::errf("FileRequestor::onTimeout: Received a timeout.\n");
+    callbackBlocker->val = "{\"status\": \"error\", \"reason\": \"Received a timeout.\"}";
 }

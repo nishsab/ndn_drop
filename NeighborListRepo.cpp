@@ -58,7 +58,7 @@ void NeighborListRepo::stop() {
     m_thread.join();
 }
 
-NeighborListRepo::NeighborListRepo(Face &face, string homeName, string nodeName, NeighborList *neighborList) : face(m_ioService) {
+NeighborListRepo::NeighborListRepo(string homeName, string nodeName, NeighborList *neighborList) : face(m_ioService) {
     m_ioService.run();
     this->homeName = homeName;
     this->nodeName = nodeName;

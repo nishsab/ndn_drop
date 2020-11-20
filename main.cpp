@@ -16,6 +16,10 @@
 #include "FileRepo.h"
 #include "FileRequestor.h"
 #include "FileDownloader.h"
+#include "KeyRepo.h"
+#include "KeyRequestor.h"
+#include "file_manager/DirectoryManager.h"
+#include "SecurityPackage.h"
 
 using namespace std;
 using namespace Mongoose;
@@ -48,12 +52,25 @@ public:
         string filename = request.get("file_name", "");
         string fileSize = request.get("file_size", "");
         string blockSize = request.get("block_size", "");
-        if (ndnName.empty() || filename.empty() || numBlocks.empty() || fileSize.empty() || blockSize.empty()) {
-            response << "{\"status\": \"error\", \"reason\": \"ndn_name, file_name, num_blocks and block_size are required arguments.\"}";
+        string owner = request.get("owner", "");
+        if (ndnName.empty() || filename.empty() || numBlocks.empty() || fileSize.empty() || blockSize.empty() || owner.empty()) {
+            response << "{\"status\": \"error\", \"reason\": \"ndn_name, file_name, num_blocks, owner and block_size are required arguments.\"}";
         }
         else {
-            string status = fileDownloader->getFile(ndnName, stoi(numBlocks), filename, stoi(fileSize), stoi(blockSize));
+            string status = fileDownloader->getFile(ndnName, stoi(numBlocks), filename, stoi(fileSize), stoi(blockSize), owner);
             response << status;
+        }
+    }
+
+    void getSessionKey(Request &request, StreamResponse &response)
+    {
+        string name = request.get("name", "");
+        if (name.empty()) {
+            response << "{\"status\": \"error\", \"reason\": \"name are required arguments.\"}";
+        }
+        else {
+            string fileList = keyRequestor->getFileList(name);
+            response << fileList;
         }
     }
 
@@ -63,17 +80,44 @@ public:
         addRoute("GET", "/get_neighbors", MyController, getNeighbors);
         addRoute("GET", "/get_file_list", MyController, getFileList);
         addRoute("GET", "/get_file", MyController, getFile);
+        addRoute("GET", "/get_session_key", MyController, getSessionKey);
     }
 
     MyController(string home, string node, Conf conf) {
+        /*securityPackage = new SecurityPackage(conf.pibLocator,
+                                              conf.tpmLocator,
+                                              conf.homeCertificateName,
+                                              conf.schemaConfPath,
+                                              conf.nacIdentityName,
+                                              conf.nacDataName,
+                                              conf.nacAccessPrefix,
+                                              conf.nacCkPrefix);*/
         neighborList = new NeighborList(conf.heartbeatWindow);
-        Face face;
-        neighborListRepo = new NeighborListRepo(face, home, node, neighborList);
+        directoryManager = new DirectoryManager(conf.outboundDirectory, conf.blockSize, conf.filePrefix, conf.repoHostName, conf.repoPort, securityPackage,conf.homeCertificateName);
+        neighborListRepo = new NeighborListRepo(home, node, neighborList);
         neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, neighborList);
-        DirectoryCrawler *directoryCrawler = new DirectoryCrawler(conf.outboundDirectory);
-        fileRepo = new FileRepo(face, home, node, directoryCrawler, conf.fileListLocation, conf.homeCertificateName);
-        fileRequestor = new FileRequestor(home, node, conf.schemaConfPath);
-        fileDownloader = new FileDownloader(conf.inboundDirectory);
+        fileRepo = new FileRepo(conf.pibLocator,
+                                conf.tpmLocator,
+                                home,
+                                node,
+                                directoryManager,
+                                conf.homeCertificateName,
+                                conf.schemaConfPath,
+                                conf.nacIdentityName,
+                                conf.nacDataName,
+                                conf.nacAccessPrefix,
+                                conf.nacCkPrefix);
+        fileRequestor = new FileRequestor(home,
+                                          conf.schemaConfPath,
+                                          conf.homeCertificateName,
+                                          conf.pibLocator,
+                                          conf.tpmLocator);
+        //fileDownloader = new FileDownloader(conf.inboundDirectory, securityPackage, conf.homeCertificateName, conf.schemaConfPath, home);
+        cout << "A" << endl;
+        //keyRepo = new KeyRepo(home, node, conf.homeCertificateName, conf.schemaConfPath,
+        //                      conf.nacIdentityName, conf.nacDataName, conf.nacAccessPrefix, conf.nacCkPrefix);
+        cout << "B" << endl;
+        //keyRequestor = new KeyRequestor(home, node, conf.schemaConfPath, conf.homeCertificateName);
     }
 
 private:
@@ -83,6 +127,10 @@ private:
     FileRepo *fileRepo;
     FileRequestor *fileRequestor;
     FileDownloader *fileDownloader;
+    KeyRepo *keyRepo;
+    KeyRequestor *keyRequestor;
+    DirectoryManager *directoryManager;
+    SecurityPackage *securityPackage;
 };
 
 
@@ -98,6 +146,8 @@ int main(int argc, char* argv[])
     string confPath = argv[4];
     Conf conf = Conf(confPath);
     cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << " Conf: " << confPath << endl;
+    //DirectoryManager directoryManager("/Users/nishsab/Documents/school/capstone/proj/ndn_drop/sandbox/laptop/outbound_dir", 10, "/ndn/drop/nishant/laptop", "localhost", 7376);
+    //return 0;
     MyController myController = MyController(home, node, conf);
     Server server(port);
     server.registerController(&myController);

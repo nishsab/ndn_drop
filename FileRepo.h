@@ -8,29 +8,47 @@
 #include <ndn-cxx/face.hpp>
 #include <boost/asio/io_service.hpp>
 #include "DirectoryCrawler.h"
+#include "file_manager/DirectoryManager.h"
+#include "Conf.h"
 #include <thread>
+#include <ndn-nac/encryptor.hpp>
+#include <ndn-nac/access-manager.hpp>
 
 using namespace ndn;
 using namespace std;
 
 class FileRepo {
 public:
-    FileRepo(Face &face, string homeName, string nodeName, DirectoryCrawler *directoryCrawler, string fileListLocation, string homeCertificateName);
+    FileRepo(string pibLocator,
+             string tpmLocator,
+             string homeName,
+             string nodeName,
+             DirectoryManager *directoryManager,
+             string homeCertificateName,
+             string schemaConfPath,
+             string nacIdentityName,
+             string nacDataName,
+             string nacAccessPrefix,
+             string nacCkPrefix);
     void stop();
 
 private:
     void setInterestFilter();
-    RegisteredPrefixHandle registeredPrefix;
+    void grantAccess(const Interest& interest);
     boost::asio::io_service m_ioService;
+    KeyChain keyChain;
     Face face;
     string homeName;
     string nodeName;
     void onInterest(const Interest& interest);
-    DirectoryCrawler *directoryCrawler;
-    KeyChain keyChain;
+    void onValidInterest(const Interest& interest);
+    void onInvalidInterest(const Interest& interest, const ValidationError& error);
+    DirectoryManager *directoryManager;
     thread m_thread;
-    string fileListLocation;
     string homeCertificateName;
+    ValidatorConfig m_validator;
+    AccessManager m_accessManager;
+    Encryptor m_encryptor;
 };
 
 
