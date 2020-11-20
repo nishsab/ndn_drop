@@ -14,7 +14,7 @@ using namespace std;
 
 class NeighborListRepo {
 public:
-    NeighborListRepo(Face &face, string homeName, string nodeName, NeighborList *neighborList);
+    NeighborListRepo(string homeName, string nodeName, NeighborList *neighborList);
     void stop();
 
 private:

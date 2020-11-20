@@ -18,6 +18,16 @@ public:
     string fileListLocation;
     string schemaConfPath;
     string homeCertificateName;
+    string nacIdentityName;
+    string nacDataName;
+    string nacAccessPrefix;
+    string nacCkPrefix;
+    int blockSize;
+    string repoHostName;
+    int repoPort;
+    string filePrefix;
+    string tpmLocator;
+    string pibLocator;
 private:
     string getString(unordered_map<string, string> configs, string key);
 };

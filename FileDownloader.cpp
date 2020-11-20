@@ -3,15 +3,44 @@
 //
 
 #include <fstream>
+#include <iostream>
 #include "FileDownloader.h"
 #include "Utils.h"
 
-FileDownloader::FileDownloader(string inboundDirectoryPath)
+FileDownloader::FileDownloader(string inboundDirectoryPath, SecurityPackage *securityPackage, string homeCertificateName, string schemaConfPath, string homeName)
+        : m_validator(m_face),
+          m_decryptor(keyChain.getPib().getIdentity(Name(homeCertificateName).getPrefix(-4)).getKey(Name(homeCertificateName).getPrefix(-2)), m_validator, keyChain, m_face),
+          keyRequestor(schemaConfPath, homeCertificateName)
 {
+    m_validator.load(schemaConfPath);
     this->inboundDirectoryPath = inboundDirectoryPath;
+    this->securityPackage = securityPackage;
+    this->homeName = homeName;
 }
 
-string FileDownloader::getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize) {
+string FileDownloader::getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize, string owner) {
+    string message;
+    keyRequestor.requestAccess(homeName, owner);
+    return "";
+    for (int i=0; i<2; i++) {
+        cout << "Requesting access for " << owner << endl;
+        bool succeeded = keyRequestor.requestAccess(homeName, owner);
+        if (succeeded) {
+            cout << "Access request succeeded" << endl;
+        }
+        else {
+            cout << "Access request failed" << endl;
+        }
+        message = getFileWithAccess(ndnName, numBlocks, filename, fileSize, blockSize);
+        cout << message << endl;
+        if (message.find("success") != string::npos) {
+            return message;
+        }
+    }
+    return message;
+}
+
+string FileDownloader::getFileWithAccess(string ndnName, int numBlocks, string filename, int fileSize, int blockSize) {
     string fullPath = string(inboundDirectoryPath);
     if (fullPath.size() > 0) {
         fullPath.append("/");
@@ -26,10 +55,11 @@ string FileDownloader::getFile(string ndnName, int numBlocks, string filename, i
     callbackContainer.stream = &ofs;
 
     for (int i=0; i<numBlocks; i++) {
-        Name segmentName = Name(ndnName);
-        ostringstream segmentStream;
-        segmentStream << "seg=" << i;
-        segmentName.append(segmentStream.str());
+        //Name segmentName = Name(ndnName);
+        //ostringstream segmentStream;
+        //segmentStream << "seg=" << i;
+        //segmentName.append(segmentStream.str());
+        Name segmentName = Name(ndnName).appendSegment(i);
         Utils::logf("FileDownloader::getFile: Sending request for %s\n", segmentName.toUri().c_str());
         Interest interest(segmentName);
         interest.setCanBePrefix(true);
@@ -45,6 +75,9 @@ string FileDownloader::getFile(string ndnName, int numBlocks, string filename, i
     if (callbackContainer.counter == numBlocks) {
         return "{\"status\": \"success\"}";
     }
+    else if (callbackContainer.accessError) {
+        return "{\"status\": \"error\", \"reason\": \"Could not decrypt!\"}";
+    }
     else {
         ostringstream os;
         os << "{\"status\": \"error\", \"reason\": \"Received " << callbackContainer.counter << " of " << numBlocks << " segments.\"}";
@@ -56,13 +89,39 @@ void FileDownloader::handleFileResponse(const Interest&, const Data& data, Callb
 {
     Utils::logf("FileDownloader::handleFileResponse: Received data packet %s.\n", data.getName().toUri().c_str());
 
+    cout << "PRE" << endl;
+    EncryptedContent encryptedContent(data.getContent().blockFromValue());
+    cout << encryptedContent.getKeyLocator().toUri() << endl;
+    m_decryptor.decrypt(data.getContent().blockFromValue(),
+                                                 [=] (ConstBufferPtr content) {
+                                                    cout << "SUCCESS!!!" << endl;
+                                                     std::cout << "Decrypted content: "
+                                                               << std::string(reinterpret_cast<const char*>(content->data()), content->size())
+                                                               << std::endl;
+
+                                                     cout << "POST" << endl;
+                                                     callbackContainer->lock.lock();
+                                                     callbackContainer->stream->seekp(blockId*blockSize);
+                                                     callbackContainer->stream->write((char *) content.get(), content->size());
+
+                                                     callbackContainer->counter++;
+                                                     callbackContainer->lock.unlock();
+                                                 },
+                                                 [=] (const ErrorCode&, const std::string& error) {
+                                                     cout << "FAILURE!!!" << endl;
+                                                     std::cerr << "Cannot decrypt data: " << error << std::endl;
+                                                     callbackContainer->accessError = true;
+                                                 });
+    sleep(2);
+
+    /*cout << "POST" << endl;
     callbackContainer->lock.lock();
     const Block& content = data.getContent();
     callbackContainer->stream->seekp(blockId*blockSize);
     callbackContainer->stream->write((char *) content.value(), content.value_size());
 
     callbackContainer->counter++;
-    callbackContainer->lock.unlock();
+    callbackContainer->lock.unlock();*/
 }
 
 void FileDownloader::onNack()

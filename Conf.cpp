@@ -28,6 +28,16 @@ Conf::Conf(string filename) {
     fileListLocation = getString(configs, "fileListLocation");
     schemaConfPath = getString(configs, "schemaConfPath");
     homeCertificateName = getString(configs, "homeCertificateName");
+    nacIdentityName = getString(configs, "nacIdentityName");
+    nacDataName = getString(configs, "nacDataName");
+    nacAccessPrefix = getString(configs, "nacAccessPrefix");
+    nacCkPrefix = getString(configs, "nacCkPrefix");
+    blockSize = atoi(getString(configs, "blockSize").c_str());
+    repoHostName = getString(configs, "repoHostName");
+    repoPort = atoi(getString(configs, "repoPort").c_str());
+    filePrefix = getString(configs, "filePrefix");
+    pibLocator = getString(configs, "pibLocator");
+    tpmLocator = getString(configs, "tpmLocator");
 }
 
 string Conf::getString(unordered_map<string, string> configs, string key) {
