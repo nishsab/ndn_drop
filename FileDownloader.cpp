@@ -7,40 +7,24 @@
 #include "FileDownloader.h"
 #include "Utils.h"
 
-FileDownloader::FileDownloader(string inboundDirectoryPath, SecurityPackage *securityPackage, string homeCertificateName, string schemaConfPath, string homeName)
-        : m_validator(m_face),
-          m_decryptor(keyChain.getPib().getIdentity(Name(homeCertificateName).getPrefix(-4)).getKey(Name(homeCertificateName).getPrefix(-2)), m_validator, keyChain, m_face),
-          keyRequestor(schemaConfPath, homeCertificateName)
+FileDownloader::FileDownloader(string inboundDirectoryPath,
+                               string homeCertificateName,
+                               string schemaConfPath,
+                               string homeName,
+                               string pibLocator,
+                               string tpmLocator)
+: keyChain(pibLocator, tpmLocator),
+  m_face(m_ioService),
+  m_validator(m_face),
+  m_decryptor(keyChain.getPib().getIdentity(Name(homeCertificateName).getPrefix(-4)).getKey(Name(homeCertificateName).getPrefix(-2)),
+                      m_validator, keyChain, m_face)
 {
     m_validator.load(schemaConfPath);
     this->inboundDirectoryPath = inboundDirectoryPath;
-    this->securityPackage = securityPackage;
     this->homeName = homeName;
 }
 
 string FileDownloader::getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize, string owner) {
-    string message;
-    keyRequestor.requestAccess(homeName, owner);
-    return "";
-    for (int i=0; i<2; i++) {
-        cout << "Requesting access for " << owner << endl;
-        bool succeeded = keyRequestor.requestAccess(homeName, owner);
-        if (succeeded) {
-            cout << "Access request succeeded" << endl;
-        }
-        else {
-            cout << "Access request failed" << endl;
-        }
-        message = getFileWithAccess(ndnName, numBlocks, filename, fileSize, blockSize);
-        cout << message << endl;
-        if (message.find("success") != string::npos) {
-            return message;
-        }
-    }
-    return message;
-}
-
-string FileDownloader::getFileWithAccess(string ndnName, int numBlocks, string filename, int fileSize, int blockSize) {
     string fullPath = string(inboundDirectoryPath);
     if (fullPath.size() > 0) {
         fullPath.append("/");
@@ -68,15 +52,16 @@ string FileDownloader::getFileWithAccess(string ndnName, int numBlocks, string f
                                bind(&FileDownloader::handleFileResponse, this,  _1, _2, &callbackContainer, i, blockSize),
                                bind(&FileDownloader::onNack, this),
                                bind(&FileDownloader::onTimeout, this));
+
+        m_face.processEvents();
     }
-    m_face.processEvents();
     ofs.close();
 
     if (callbackContainer.counter == numBlocks) {
         return "{\"status\": \"success\"}";
     }
-    else if (callbackContainer.accessError) {
-        return "{\"status\": \"error\", \"reason\": \"Could not decrypt!\"}";
+    else if (callbackContainer.error) {
+        return "{\"status\": \"error\", \"reason\": \"" + callbackContainer.errorMessage + "\"}";
     }
     else {
         ostringstream os;
@@ -85,12 +70,78 @@ string FileDownloader::getFileWithAccess(string ndnName, int numBlocks, string f
     }
 }
 
+void FileDownloader::afterValidation(const Data& data, CallbackContainer *callbackContainer, int blockId, int blockSize) {
+    Utils::logf("FileDownloader::afterValidation: validation succeeded.\n");
+    m_decryptor.decrypt(data.getContent().blockFromValue(),
+                        [=] (ConstBufferPtr content) {
+                            string decryptedContent = std::string(reinterpret_cast<const char*>(content->data()), content->size());
+                            Utils::logf("FileDownloader::afterValidation: successfully decrypted content.\n");
+                            cout << decryptedContent << endl;
+                            callbackContainer->lock.lock();
+                            callbackContainer->stream->seekp(blockId*blockSize);
+                            callbackContainer->stream->write((char *) decryptedContent.c_str(), decryptedContent.size());
+                            callbackContainer->counter++;
+                            callbackContainer->lock.unlock();
+                            //callbackBlocker->val = decryptedContent;
+                        },
+                        [=] (const ErrorCode&, const std::string& error) {
+                            Utils::errf("FileDownloader::afterValidation: Received a decrypyion error: %s.\n", error.c_str());
+                            callbackContainer->error = true;
+                            callbackContainer->errorMessage = "Cannot decrypt retrieved data: " + string(error);
+                            //callbackBlocker->val = "{\"status\": \"error\", \"reason\": \"Could not decrypt: " + error + ".\"}";
+                        });
+    Utils::logf("FileDownloader::afterValidation: done decrypting.\n");
+    /*callbackContainer->lock.lock();
+    const Block& content = data.getContent();
+    callbackContainer->stream->seekp(blockId*blockSize);
+    callbackContainer->stream->write((char *) content.value(), content.value_size());
+
+    callbackContainer->counter++;
+    callbackContainer->lock.unlock();*/
+}
+
+void FileDownloader::validationError(const ndn::security::ValidationError &error, CallbackContainer *callbackContainer) {
+    Utils::errf("Error validating data: %s\n", error.getInfo().c_str());
+    callbackContainer->error = true;
+    callbackContainer->errorMessage = "Cannot validate retrieved data: " + string(error.getInfo());
+}
+
 void FileDownloader::handleFileResponse(const Interest&, const Data& data, CallbackContainer *callbackContainer, int blockId, int blockSize)
 {
     Utils::logf("FileDownloader::handleFileResponse: Received data packet %s.\n", data.getName().toUri().c_str());
 
-    cout << "PRE" << endl;
-    EncryptedContent encryptedContent(data.getContent().blockFromValue());
+    m_validator.validate(data,
+                         bind(&FileDownloader::afterValidation, this, _1, callbackContainer, blockId, blockSize),
+                         bind(&FileDownloader::validationError, this, _2, callbackContainer));
+    /*m_validator.validate(data,
+                         [=] (const Data& data) {
+                            cout << "Data was validated: " << blockId << endl;
+                             m_decryptor.decrypt(data.getContent().blockFromValue(),
+                                                 [=] (ConstBufferPtr content) {
+                                                     std::cout << "Decrypted content: "
+                                                               << std::string(reinterpret_cast<const char*>(content->data()), content->size())
+                                                               << std::endl;
+                                                 },
+                                                 [=] (const ErrorCode&, const std::string& error) {
+                                                     std::cerr << "Cannot decrypt data: " << error << std::endl;
+                                                 });
+                             callbackContainer->lock.lock();
+                             const Block& content = data.getContent();
+                             callbackContainer->stream->seekp(blockId*blockSize);
+                             callbackContainer->stream->write((char *) content.value(), content.value_size());
+
+                             callbackContainer->counter++;
+                             callbackContainer->lock.unlock();
+
+                         },
+                         [=] (const Data& data, const ValidationError& error) {
+                             std::cerr << "Cannot validate retrieved data: " << blockId << " " << error << std::endl;
+                             callbackContainer->error = true;
+                             callbackContainer->errorMessage = "Cannot validate retrieved data: " + string(error.getInfo());
+                         });*/
+    //cout << "Made it here: " << blockId << endl;
+
+    /*EncryptedContent encryptedContent(data.getContent().blockFromValue());
     cout << encryptedContent.getKeyLocator().toUri() << endl;
     m_decryptor.decrypt(data.getContent().blockFromValue(),
                                                  [=] (ConstBufferPtr content) {
@@ -112,7 +163,7 @@ void FileDownloader::handleFileResponse(const Interest&, const Data& data, Callb
                                                      std::cerr << "Cannot decrypt data: " << error << std::endl;
                                                      callbackContainer->accessError = true;
                                                  });
-    sleep(2);
+    sleep(2);*/
 
     /*cout << "POST" << endl;
     callbackContainer->lock.lock();
@@ -121,7 +172,8 @@ void FileDownloader::handleFileResponse(const Interest&, const Data& data, Callb
     callbackContainer->stream->write((char *) content.value(), content.value_size());
 
     callbackContainer->counter++;
-    callbackContainer->lock.unlock();*/
+    callbackContainer->lock.unlock();
+    cout << "Made it here also: " << blockId << endl;*/
 }
 
 void FileDownloader::onNack()

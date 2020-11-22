@@ -38,6 +38,7 @@ Conf::Conf(string filename) {
     filePrefix = getString(configs, "filePrefix");
     pibLocator = getString(configs, "pibLocator");
     tpmLocator = getString(configs, "tpmLocator");
+    nacCkFilePrefix = getString(configs, "nacCkFilePrefix");
 }
 
 string Conf::getString(unordered_map<string, string> configs, string key) {

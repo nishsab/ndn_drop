@@ -9,25 +9,40 @@
 #include "PacketEncoder.h"
 #include "PacketSender.h"
 
-DirectoryManager::DirectoryManager(string directoryPath, int blockSize, string prefix, string repoHostName, int repoPort, SecurityPackage *securityPackage, string certificateName)
+DirectoryManager::DirectoryManager(string directoryPath,
+                                   int blockSize,
+                                   string prefix,
+                                   string repoHostName,
+                                   int repoPort,
+                                   string certificateName,
+                                   string pibLocator,
+                                   string tpmLocator,
+                                   string nacAccessPrefix,
+                                   string nacCkPrefix,
+                                   string schemaConfPath)
+: packetEncoder(certificateName,
+                pibLocator,
+                tpmLocator,
+                nacAccessPrefix,
+                nacCkPrefix,
+                schemaConfPath)
 {
+    cout << "Directory manager started" << endl;
     directoryMonitor = new DirectoryMonitor(directoryPath, blockSize, prefix);
     this->repoHostName = repoHostName;
     this->repoPort = repoPort;
     running = true;
     directoryManagerThread = thread(&DirectoryManager::threadRunner, this);
-    this->securityPackage = securityPackage;
     this->certificateName = certificateName;
 }
 
 void DirectoryManager::threadRunner() {
-    PacketEncoder packetEncoder(certificateName, securityPackage);
     PacketSender packetSender(repoHostName, repoPort);
     vector<FileInfo> fileInfos = directoryMonitor->checkForNewFiles();
-    /*vector<const Data> dataPackets = packetEncoder.encodePackets(fileInfos);
+    vector<const Data> dataPackets = packetEncoder.encodePackets(fileInfos);
     if (!dataPackets.empty()) {
         packetSender.sendPackets(dataPackets);
-    }*/
+    }
     directoryMonitor->persist(fileInfos);
     while (running) {
         sleep(5);

@@ -19,28 +19,39 @@ struct CallbackContainer {
     ofstream *stream;
     mutex lock;
     int counter;
-    bool accessError;
+    bool error;
+    string errorMessage;
 };
 
 class FileDownloader {
 public:
-    FileDownloader(string inboundDirectoryPath, SecurityPackage *securityPackage, string homeCertificateName, string schemaConfPath, string homeName);
+    FileDownloader(string inboundDirectoryPath,
+                   string homeCertificateName,
+                   string schemaConfPath,
+                   string homeName,
+                   string pibLocator,
+                   string tpmLocator);
     string getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize, string owner);
 
 private:
     void handleFileResponse(const Interest&, const Data& data, CallbackContainer *callbackContainer, int blockid, int blockSize);
-    string getFileWithAccess(string ndnName, int numBlocks, string filename, int fileSize, int blockSize);
+    void afterValidation(const Data& data, CallbackContainer *callbackContainer, int blockid, int blockSize);
+    void validationError(const ndn::security::ValidationError &error, CallbackContainer *callbackContainer);
+    //string getFileWithAccess(string ndnName, int numBlocks, string filename, int fileSize, int blockSize);
     void onNack();
     void onTimeout();
-    Face m_face;
+
     KeyChain keyChain;
-    string inboundDirectoryPath;
-    SecurityPackage *securityPackage;
+    boost::asio::io_service m_ioService;
+    boost::asio::io_service m_ioServiceInterest;
+    Face m_face;
     ValidatorConfig m_validator;
     Decryptor m_decryptor;
+
+    string inboundDirectoryPath;
     string homeCertificateName;
     string schemaConfPath;
-    KeyRequestor keyRequestor;
+    //KeyRequestor keyRequestor;
     string homeName;
 };
 
