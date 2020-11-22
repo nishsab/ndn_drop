@@ -93,9 +93,19 @@ public:
                                               conf.nacAccessPrefix,
                                               conf.nacCkPrefix);*/
         neighborList = new NeighborList(conf.heartbeatWindow);
-        directoryManager = new DirectoryManager(conf.outboundDirectory, conf.blockSize, conf.filePrefix, conf.repoHostName, conf.repoPort, securityPackage,conf.homeCertificateName);
         neighborListRepo = new NeighborListRepo(home, node, neighborList);
         neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, neighborList);
+        directoryManager = new DirectoryManager(conf.outboundDirectory,
+                                                conf.blockSize,
+                                                conf.filePrefix,
+                                                conf.repoHostName,
+                                                conf.repoPort,
+                                                conf.homeCertificateName,
+                                                conf.pibLocator,
+                                                conf.tpmLocator,
+                                                conf.nacAccessPrefix,
+                                                conf.nacCkFilePrefix,
+                                                conf.schemaConfPath);
         fileRepo = new FileRepo(conf.pibLocator,
                                 conf.tpmLocator,
                                 home,
@@ -107,17 +117,19 @@ public:
                                 conf.nacDataName,
                                 conf.nacAccessPrefix,
                                 conf.nacCkPrefix);
+
+        cout << "done with directory manager" << endl;
         fileRequestor = new FileRequestor(home,
                                           conf.schemaConfPath,
                                           conf.homeCertificateName,
                                           conf.pibLocator,
                                           conf.tpmLocator);
-        //fileDownloader = new FileDownloader(conf.inboundDirectory, securityPackage, conf.homeCertificateName, conf.schemaConfPath, home);
-        cout << "A" << endl;
-        //keyRepo = new KeyRepo(home, node, conf.homeCertificateName, conf.schemaConfPath,
-        //                      conf.nacIdentityName, conf.nacDataName, conf.nacAccessPrefix, conf.nacCkPrefix);
-        cout << "B" << endl;
-        //keyRequestor = new KeyRequestor(home, node, conf.schemaConfPath, conf.homeCertificateName);
+        fileDownloader = new FileDownloader(conf.inboundDirectory,
+                                            conf.homeCertificateName,
+                                            conf.schemaConfPath,
+                                            home,
+                                            conf.pibLocator,
+                                            conf.tpmLocator);
     }
 
 private:
@@ -146,8 +158,6 @@ int main(int argc, char* argv[])
     string confPath = argv[4];
     Conf conf = Conf(confPath);
     cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << " Conf: " << confPath << endl;
-    //DirectoryManager directoryManager("/Users/nishsab/Documents/school/capstone/proj/ndn_drop/sandbox/laptop/outbound_dir", 10, "/ndn/drop/nishant/laptop", "localhost", 7376);
-    //return 0;
     MyController myController = MyController(home, node, conf);
     Server server(port);
     server.registerController(&myController);

@@ -9,12 +9,23 @@
 #include <thread>
 #include "DirectoryMonitor.h"
 #include "../SecurityPackage.h"
+#include "PacketEncoder.h"
 
 using namespace std;
 
 class DirectoryManager {
 public:
-    DirectoryManager(string directoryPath, int blockSize, string prefix, string repoHostName, int repoPort, SecurityPackage *securityPackage, string certificateName);
+    DirectoryManager(string directoryPath,
+                     int blockSize,
+                     string prefix,
+                     string repoHostName,
+                     int repoPort,
+                     string certificateName,
+                     string pibLocator,
+                     string tpmLocator,
+                     string nacAccessPrefix,
+                     string nacCkPrefix,
+                     string schemaConfPath);
     string getFileMetaDataJson();
 
 private:
@@ -27,6 +38,7 @@ private:
     bool running;
     SecurityPackage *securityPackage;
     string certificateName;
+    PacketEncoder packetEncoder;
 };
 
 

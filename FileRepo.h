@@ -14,6 +14,7 @@
 #include <ndn-nac/encryptor.hpp>
 #include <ndn-nac/access-manager.hpp>
 
+
 using namespace ndn;
 using namespace std;
 
@@ -31,8 +32,9 @@ public:
              string nacAccessPrefix,
              string nacCkPrefix);
     void stop();
+    DirectoryManager *directoryManager;
 
-private:
+//private:
     void setInterestFilter();
     void grantAccess(const Interest& interest);
     boost::asio::io_service m_ioService;
@@ -43,7 +45,6 @@ private:
     void onInterest(const Interest& interest);
     void onValidInterest(const Interest& interest);
     void onInvalidInterest(const Interest& interest, const ValidationError& error);
-    DirectoryManager *directoryManager;
     thread m_thread;
     string homeCertificateName;
     ValidatorConfig m_validator;

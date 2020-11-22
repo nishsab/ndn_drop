@@ -14,13 +14,20 @@ using namespace ndn;
 
 class PacketEncoder {
 public:
-    PacketEncoder(string certificateName, SecurityPackage *securityPackage);
+    PacketEncoder(string certificateName, string pibLocator, string tpmLocator, string nacAccessPrefix,
+                  string nacCkPrefix, string schemaConfPath);
+
     vector<const Data> encodePackets(vector<FileInfo> fileInfos);
 private:
     KeyChain keyChain;
+    boost::asio::io_service m_ioService;
+    Face face;
+    ValidatorConfig m_validator;
+    Encryptor m_encryptor;
     vector<const Data> encodeFileIntoPackets(FileInfo fileInfo);
-    SecurityPackage *securityPackage;
     string certificateName;
+    void runEncryptor();
+    thread m_thread;
 };
 
 

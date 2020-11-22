@@ -44,16 +44,21 @@ void FileRepo::onValidInterest(const Interest& interest)
 {
     Utils::logf("FileRepo::onValidInterest: Responding with file list\n");
     grantAccess(interest);
+    cout << "A" << endl;
     string fileMetadataJson = directoryManager->getFileMetaDataJson();
+    cout << "B" << endl;
     auto data = make_shared<Data>(interest.getName());
     data->setFreshnessPeriod(1_s);
-
+    cout << "C" << endl;
     //data->setContent((uint8_t *) fileMetadataJson.c_str(), fileMetadataJson.size());
     auto blob = m_encryptor.encrypt(reinterpret_cast<const uint8_t*>(fileMetadataJson.data()), fileMetadataJson.size());
     data->setContent(blob.wireEncode());
-
+    cout << "D" << endl;
     keyChain.sign(*data, security::signingByCertificate(Name(this->homeCertificateName)));
+    cout << "E" << endl;
     face.put(*data);
+    cout << "F" << endl;
+
 }
 
 void FileRepo::grantAccess(const Interest& interest) {
@@ -63,6 +68,7 @@ void FileRepo::grantAccess(const Interest& interest) {
             const Certificate *signingCertificate = m_validator.getUnverifiedCertCache().find(signingKeyName);
             Utils::logf("FileRepo::grantAccess: granting access to %s from unverified cache\n", signingCertificate->getKeyName().toUri().c_str());
             m_accessManager.addMember(*signingCertificate);
+            cout << "done" << endl;
         }
         else if (m_validator.getVerifiedCertCache().find(signingKeyName)) {
             const Certificate *signingCertificate = m_validator.getVerifiedCertCache().find(signingKeyName);
@@ -101,7 +107,8 @@ FileRepo::FileRepo(string pibLocator,
   m_encryptor(nacAccessPrefix,
               nacCkPrefix, signingWithSha256(),
               [] (auto...) {
-                  cerr << "Failed to publish CK";
+                  cerr << "Failed to publish CK from FileRepo " << endl;
+                  throw(-1);
               }, m_validator, keyChain, face)
 {
     m_validator.load(schemaConfPath);
