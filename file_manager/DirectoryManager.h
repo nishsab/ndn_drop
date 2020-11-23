@@ -8,7 +8,6 @@
 #include <string>
 #include <thread>
 #include "DirectoryMonitor.h"
-#include "../SecurityPackage.h"
 #include "PacketEncoder.h"
 
 using namespace std;
@@ -36,8 +35,6 @@ private:
     void stop();
     thread directoryManagerThread;
     bool running;
-    SecurityPackage *securityPackage;
-    string certificateName;
     PacketEncoder packetEncoder;
 };
 

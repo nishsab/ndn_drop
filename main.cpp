@@ -4,22 +4,16 @@
 #include <unistd.h>
 #endif
 #include <stdlib.h>
-#include <signal.h>
 #include <mongoose/Server.h>
 #include <mongoose/WebController.h>
 #include "NeighborList.h"
 #include "NeighborListRepo.h"
 #include "NeighborListRequestor.h"
-#include "NeighborListName.h"
 #include "Conf.h"
-#include "DirectoryCrawler.h"
 #include "FileRepo.h"
 #include "FileRequestor.h"
 #include "FileDownloader.h"
-#include "KeyRepo.h"
-#include "KeyRequestor.h"
 #include "file_manager/DirectoryManager.h"
-#include "SecurityPackage.h"
 
 using namespace std;
 using namespace Mongoose;
@@ -34,7 +28,7 @@ public:
 
     void getNeighbors(Request &request, StreamResponse &response)
     {
-        string neighbors = neighborList->getNeighborsJson();
+        string neighbors = neighborList.getNeighborsJson();
         response << neighbors;
     }
 
@@ -62,39 +56,20 @@ public:
         }
     }
 
-    void getSessionKey(Request &request, StreamResponse &response)
-    {
-        string name = request.get("name", "");
-        if (name.empty()) {
-            response << "{\"status\": \"error\", \"reason\": \"name are required arguments.\"}";
-        }
-        else {
-            string fileList = keyRequestor->getFileList(name);
-            response << fileList;
-        }
-    }
-
     void setup()
     {
         addRoute("GET", "/hello", MyController, hello);
         addRoute("GET", "/get_neighbors", MyController, getNeighbors);
         addRoute("GET", "/get_file_list", MyController, getFileList);
         addRoute("GET", "/get_file", MyController, getFile);
-        addRoute("GET", "/get_session_key", MyController, getSessionKey);
     }
 
-    MyController(string home, string node, Conf conf) {
-        /*securityPackage = new SecurityPackage(conf.pibLocator,
-                                              conf.tpmLocator,
-                                              conf.homeCertificateName,
-                                              conf.schemaConfPath,
-                                              conf.nacIdentityName,
-                                              conf.nacDataName,
-                                              conf.nacAccessPrefix,
-                                              conf.nacCkPrefix);*/
-        neighborList = new NeighborList(conf.heartbeatWindow);
-        neighborListRepo = new NeighborListRepo(home, node, neighborList);
-        neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, neighborList);
+    MyController(string home, string node, Conf conf)
+    : neighborList(conf.heartbeatWindow)
+    {
+        //neighborList = new NeighborList(conf.heartbeatWindow);
+        neighborListRepo = new NeighborListRepo(home, node, &neighborList);
+        neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, &neighborList);
         directoryManager = new DirectoryManager(conf.outboundDirectory,
                                                 conf.blockSize,
                                                 conf.filePrefix,
@@ -118,7 +93,6 @@ public:
                                 conf.nacAccessPrefix,
                                 conf.nacCkPrefix);
 
-        cout << "done with directory manager" << endl;
         fileRequestor = new FileRequestor(home,
                                           conf.schemaConfPath,
                                           conf.homeCertificateName,
@@ -133,16 +107,14 @@ public:
     }
 
 private:
-    NeighborList *neighborList;
+    NeighborList neighborList;
+    //NeighborList *neighborList;
     NeighborListRepo *neighborListRepo;
     NeighborListRequestor *neighborListRequestor;
     FileRepo *fileRepo;
     FileRequestor *fileRequestor;
     FileDownloader *fileDownloader;
-    KeyRepo *keyRepo;
-    KeyRequestor *keyRequestor;
     DirectoryManager *directoryManager;
-    SecurityPackage *securityPackage;
 };
 
 
@@ -158,9 +130,9 @@ int main(int argc, char* argv[])
     string confPath = argv[4];
     Conf conf = Conf(confPath);
     cout << "Starting endpoints on port " << port << ". Home: " << home << " Node: " << node << " Conf: " << confPath << endl;
-    MyController myController = MyController(home, node, conf);
+    MyController *myController =  new MyController(home, node, conf);
     Server server(port);
-    server.registerController(&myController);
+    server.registerController(myController);
 
     server.start();
     while (1) {

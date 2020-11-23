@@ -33,7 +33,6 @@ DirectoryManager::DirectoryManager(string directoryPath,
     this->repoPort = repoPort;
     running = true;
     directoryManagerThread = thread(&DirectoryManager::threadRunner, this);
-    this->certificateName = certificateName;
 }
 
 void DirectoryManager::threadRunner() {

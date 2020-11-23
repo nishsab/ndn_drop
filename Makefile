@@ -1,10 +1,8 @@
 TARGETS = ndn_drop
 SOURCES = main.cpp NeighborList.cpp Utils.cpp NeighborListRequestor.cpp NeighborListName.cpp \
-NeighborListRepo.cpp Conf.cpp DirectoryCrawler.cpp FileName.cpp FileRepo.cpp FileRequestor.cpp \
-IdentityName.cpp FileDownloader.cpp KeyRepo.cpp KeyRequestor.cpp SessionKeyName.cpp \
+NeighborListRepo.cpp Conf.cpp FileName.cpp FileRepo.cpp FileRequestor.cpp FileDownloader.cpp \
 file_manager/DirectoryManager.cpp file_manager/DirectoryMonitor.cpp file_manager/FileInfo.cpp \
-file_manager/PacketEncoder.cpp PracticalSocket.cpp file_manager/PacketSender.cpp file_manager/MetadataConverter.cpp \
-SecurityPackage.cpp
+file_manager/PacketEncoder.cpp PracticalSocket.cpp file_manager/PacketSender.cpp file_manager/MetadataConverter.cpp
 CFLAGS = `pkg-config --cflags --libs libndn-cxx libndn-nac`
 STATIC_LIBS = -l mongoose
 all: clean $(TARGETS)

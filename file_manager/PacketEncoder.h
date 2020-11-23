@@ -8,9 +8,12 @@
 #include <ndn-cxx/data.hpp>
 #include <ndn-cxx/security/key-chain.hpp>
 #include "FileInfo.h"
-#include "../SecurityPackage.h"
+#include <ndn-cxx/security/validator-config.hpp>
+#include <ndn-nac/encryptor.hpp>
+#include <ndn-nac/access-manager.hpp>
 
 using namespace ndn;
+using namespace nac;
 
 class PacketEncoder {
 public:

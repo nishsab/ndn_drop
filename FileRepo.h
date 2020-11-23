@@ -7,7 +7,6 @@
 
 #include <ndn-cxx/face.hpp>
 #include <boost/asio/io_service.hpp>
-#include "DirectoryCrawler.h"
 #include "file_manager/DirectoryManager.h"
 #include "Conf.h"
 #include <thread>
@@ -34,7 +33,7 @@ public:
     void stop();
     DirectoryManager *directoryManager;
 
-//private:
+private:
     void setInterestFilter();
     void grantAccess(const Interest& interest);
     boost::asio::io_service m_ioService;
