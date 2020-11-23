@@ -31,7 +31,6 @@ public:
     FileDownloader(string inboundDirectoryPath,
                    string homeCertificateName,
                    string schemaConfPath,
-                   string homeName,
                    string pibLocator,
                    string tpmLocator);
     string getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize, string owner);

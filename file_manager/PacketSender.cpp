@@ -23,7 +23,6 @@ void PacketSender::sendPackets(vector<const Data> dataPackets) {
         }
     } catch(SocketException &e) {
         cerr << e.what() << endl;
-        cout << repoHostname << " " << port << endl;
         exit(1);
     }
 }

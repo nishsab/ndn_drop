@@ -35,8 +35,13 @@ public:
     void getFileList(Request &request, StreamResponse &response)
     {
         string owner = request.get("owner", "");
-        string fileList = fileRequestor->getFileList(owner);
-        response << fileList;
+        if (owner.empty()) {
+            response << "{\"status\": \"error\", \"reason\": \"owner are required arguments.\"}";
+        }
+        else {
+            string fileList = fileRequestor.getFileList(owner);
+            response << fileList;
+        }
     }
 
     void getFile(Request &request, StreamResponse &response)
@@ -51,7 +56,7 @@ public:
             response << "{\"status\": \"error\", \"reason\": \"ndn_name, file_name, num_blocks, owner and block_size are required arguments.\"}";
         }
         else {
-            string status = fileDownloader->getFile(ndnName, stoi(numBlocks), filename, stoi(fileSize), stoi(blockSize), owner);
+            string status = fileDownloader.getFile(ndnName, stoi(numBlocks), filename, stoi(fileSize), stoi(blockSize), owner);
             response << status;
         }
     }
@@ -65,56 +70,53 @@ public:
     }
 
     MyController(string home, string node, Conf conf)
-    : neighborList(conf.heartbeatWindow)
+    : neighborList(conf.heartbeatWindow),
+      neighborListRepo(home, node, &neighborList),
+      neighborListRequestor(conf.heartbeatWindow, home, node, &neighborList),
+      directoryManager(conf.outboundDirectory,
+                       conf.blockSize,
+                       conf.filePrefix,
+                       conf.repoHostName,
+                       conf.repoPort,
+                       conf.homeCertificateName,
+                       conf.pibLocator,
+                       conf.tpmLocator,
+                       conf.nacAccessPrefix,
+                       conf.nacCkFilePrefix,
+                       conf.schemaConfPath),
+      fileRepo(conf.pibLocator,
+               conf.tpmLocator,
+               home,
+               node,
+               &directoryManager,
+               conf.homeCertificateName,
+               conf.schemaConfPath,
+               conf.nacIdentityName,
+               conf.nacDataName,
+               conf.nacAccessPrefix,
+               conf.nacCkPrefix),
+      fileRequestor(home,
+                    conf.schemaConfPath,
+                    conf.homeCertificateName,
+                    conf.pibLocator,
+                    conf.tpmLocator),
+      fileDownloader(conf.inboundDirectory,
+                     conf.homeCertificateName,
+                     conf.schemaConfPath,
+                     conf.pibLocator,
+                     conf.tpmLocator)
     {
-        //neighborList = new NeighborList(conf.heartbeatWindow);
-        neighborListRepo = new NeighborListRepo(home, node, &neighborList);
-        neighborListRequestor = new NeighborListRequestor(conf.heartbeatWindow, home, node, &neighborList);
-        directoryManager = new DirectoryManager(conf.outboundDirectory,
-                                                conf.blockSize,
-                                                conf.filePrefix,
-                                                conf.repoHostName,
-                                                conf.repoPort,
-                                                conf.homeCertificateName,
-                                                conf.pibLocator,
-                                                conf.tpmLocator,
-                                                conf.nacAccessPrefix,
-                                                conf.nacCkFilePrefix,
-                                                conf.schemaConfPath);
-        fileRepo = new FileRepo(conf.pibLocator,
-                                conf.tpmLocator,
-                                home,
-                                node,
-                                directoryManager,
-                                conf.homeCertificateName,
-                                conf.schemaConfPath,
-                                conf.nacIdentityName,
-                                conf.nacDataName,
-                                conf.nacAccessPrefix,
-                                conf.nacCkPrefix);
 
-        fileRequestor = new FileRequestor(home,
-                                          conf.schemaConfPath,
-                                          conf.homeCertificateName,
-                                          conf.pibLocator,
-                                          conf.tpmLocator);
-        fileDownloader = new FileDownloader(conf.inboundDirectory,
-                                            conf.homeCertificateName,
-                                            conf.schemaConfPath,
-                                            home,
-                                            conf.pibLocator,
-                                            conf.tpmLocator);
     }
 
 private:
     NeighborList neighborList;
-    //NeighborList *neighborList;
-    NeighborListRepo *neighborListRepo;
-    NeighborListRequestor *neighborListRequestor;
-    FileRepo *fileRepo;
-    FileRequestor *fileRequestor;
-    FileDownloader *fileDownloader;
-    DirectoryManager *directoryManager;
+    NeighborListRepo neighborListRepo;
+    NeighborListRequestor neighborListRequestor;
+    DirectoryManager directoryManager;
+    FileRepo fileRepo;
+    FileRequestor fileRequestor;
+    FileDownloader fileDownloader;
 };
 
 

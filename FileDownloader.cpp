@@ -10,7 +10,6 @@
 FileDownloader::FileDownloader(string inboundDirectoryPath,
                                string homeCertificateName,
                                string schemaConfPath,
-                               string homeName,
                                string pibLocator,
                                string tpmLocator)
 : keyChain(pibLocator, tpmLocator),

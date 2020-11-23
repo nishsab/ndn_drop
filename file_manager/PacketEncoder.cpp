@@ -24,12 +24,10 @@ PacketEncoder::PacketEncoder(string certificateName,
                           throw(-1);
                       }, m_validator, keyChain, face)
 {
-    cout << "1" << endl;
     m_validator.load(schemaConfPath);
     this->certificateName = certificateName;
-    //m_ioService.run();
     m_thread = thread(&PacketEncoder::runEncryptor, this);
-    cout << "2" << endl;
+    Utils::logf("Packet encoder started\n");
 }
 
 void PacketEncoder::runEncryptor() {

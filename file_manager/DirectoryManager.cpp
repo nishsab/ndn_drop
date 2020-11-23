@@ -8,6 +8,7 @@
 #include "DirectoryMonitor.h"
 #include "PacketEncoder.h"
 #include "PacketSender.h"
+#include "../Utils.h"
 
 DirectoryManager::DirectoryManager(string directoryPath,
                                    int blockSize,
@@ -27,12 +28,12 @@ DirectoryManager::DirectoryManager(string directoryPath,
                 nacCkPrefix,
                 schemaConfPath)
 {
-    cout << "Directory manager started" << endl;
     directoryMonitor = new DirectoryMonitor(directoryPath, blockSize, prefix);
     this->repoHostName = repoHostName;
     this->repoPort = repoPort;
     running = true;
     directoryManagerThread = thread(&DirectoryManager::threadRunner, this);
+    Utils::logf("Directory manager started\n");
 }
 
 void DirectoryManager::threadRunner() {
