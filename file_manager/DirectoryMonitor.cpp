@@ -10,7 +10,6 @@
 #include "MetadataConverter.h"
 #include "../Utils.h"
 #include <math.h>
-#include <mutex>
 
 vector<string> getFiles(string directoryPath);
 long getFileModTime(string relativePath);
@@ -50,19 +49,16 @@ vector<FileInfo> DirectoryMonitor::checkForNewFiles() {
 
 string DirectoryMonitor::getFileMetadatajson() {
     vector<FileInfo> fileInfos = getTrackedFiles();
-    cout << "getFileMetadatajson: " << fileInfos.size() << endl;
     return MetadataConverter::buildJson(fileInfos);
 }
 
 void DirectoryMonitor::persist(vector<FileInfo> fileInfos) {
-    cout << "inserting " << fileInfos.size() << endl;
     cout << trackedFiles.size() << endl;
     lock.lock();
     for (FileInfo fileInfo : fileInfos) {
         trackedFiles[fileInfo.filename] = fileInfo;
     }
     lock.unlock();
-    cout << "size" << trackedFiles.size() << endl;
 }
 
 vector<FileInfo> DirectoryMonitor::getTrackedFiles() {

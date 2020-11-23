@@ -44,21 +44,14 @@ void FileRepo::onValidInterest(const Interest& interest)
 {
     Utils::logf("FileRepo::onValidInterest: Responding with file list\n");
     grantAccess(interest);
-    cout << "A" << endl;
     string fileMetadataJson = directoryManager->getFileMetaDataJson();
-    cout << "B" << endl;
     auto data = make_shared<Data>(interest.getName());
     data->setFreshnessPeriod(1_s);
-    cout << "C" << endl;
     //data->setContent((uint8_t *) fileMetadataJson.c_str(), fileMetadataJson.size());
     auto blob = m_encryptor.encrypt(reinterpret_cast<const uint8_t*>(fileMetadataJson.data()), fileMetadataJson.size());
     data->setContent(blob.wireEncode());
-    cout << "D" << endl;
     keyChain.sign(*data, security::signingByCertificate(Name(this->homeCertificateName)));
-    cout << "E" << endl;
     face.put(*data);
-    cout << "F" << endl;
-
 }
 
 void FileRepo::grantAccess(const Interest& interest) {

@@ -3,18 +3,13 @@
 //
 
 #include <iostream>
-#include <sstream>
 #include "FileInfo.h"
 #include "../Utils.h"
 
 FileInfo::FileInfo() {
-    cout << "EMPTY!!" << endl;
-    //Utils::errf("FileInfo::FileInfo() is not implemented!\n");
-    //throw 1;
 };
 
 FileInfo::FileInfo(string filename, string relativePath, string prefix, int blockSize) {
-    cout << "BUILDT" << endl;
     this->filename = filename;
     this->relativePath = relativePath;
     this->prefix = prefix;
