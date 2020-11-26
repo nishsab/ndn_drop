@@ -22,7 +22,7 @@ FileDownloader::FileDownloader(string inboundDirectoryPath,
     this->inboundDirectoryPath = inboundDirectoryPath;
 }
 
-string FileDownloader::getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize, string owner) {
+string FileDownloader::getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize) {
     string fullPath = string(inboundDirectoryPath);
     if (fullPath.size() > 0) {
         fullPath.append("/");

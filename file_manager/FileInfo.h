@@ -16,6 +16,7 @@ public:
     FileInfo(string filename, string relativePath, string prefix, int blockSize);
     FileInfo();
     Name getNdnName();
+    string getUrlPath();
     string toString();
 
     string filename;

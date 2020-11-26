@@ -28,7 +28,7 @@ private:
     void addNeighbor(string neighborName, int timeRemaining);
     void decrementList();
     int heartbeatWindow = 3;
-    int neighborListLifetime = 3;
+    int neighborListLifetime = 6;
     unordered_map<string, int> neighborList;
     void monitorNeighborList();
     mutex neighborListLock;

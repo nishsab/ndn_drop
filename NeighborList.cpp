@@ -48,7 +48,7 @@ string NeighborList::serializeList() {
 string NeighborList::getNeighborsJson() {
     stringstream ss;
     bool hasValues = false;
-    ss << "{\"neighbors\": [";
+    ss << "{\"status\": \"success\", \"neighbors\": [";
     neighborListLock.lock();
     for (auto x : neighborList) {
         hasValues = true;

@@ -61,7 +61,6 @@ void FileRepo::grantAccess(const Interest& interest) {
             const Certificate *signingCertificate = m_validator.getUnverifiedCertCache().find(signingKeyName);
             Utils::logf("FileRepo::grantAccess: granting access to %s from unverified cache\n", signingCertificate->getKeyName().toUri().c_str());
             m_accessManager.addMember(*signingCertificate);
-            cout << "done" << endl;
         }
         else if (m_validator.getVerifiedCertCache().find(signingKeyName)) {
             const Certificate *signingCertificate = m_validator.getVerifiedCertCache().find(signingKeyName);

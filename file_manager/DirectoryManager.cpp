@@ -38,13 +38,13 @@ DirectoryManager::DirectoryManager(string directoryPath,
 
 void DirectoryManager::threadRunner() {
     PacketSender packetSender(repoHostName, repoPort);
-    vector<FileInfo> fileInfos = directoryMonitor->checkForNewFiles();
-    vector<const Data> dataPackets = packetEncoder.encodePackets(fileInfos);
-    if (!dataPackets.empty()) {
-        packetSender.sendPackets(dataPackets);
-    }
-    directoryMonitor->persist(fileInfos);
     while (running) {
+        vector<FileInfo> fileInfos = directoryMonitor->checkForNewFiles();
+        vector<const Data> dataPackets = packetEncoder.encodePackets(fileInfos);
+        if (!dataPackets.empty()) {
+            packetSender.sendPackets(dataPackets);
+        }
+        directoryMonitor->persist(fileInfos);
         sleep(5);
     }
 }
