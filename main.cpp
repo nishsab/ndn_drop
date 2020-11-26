@@ -51,12 +51,11 @@ public:
         string filename = request.get("file_name", "");
         string fileSize = request.get("file_size", "");
         string blockSize = request.get("block_size", "");
-        string owner = request.get("owner", "");
-        if (ndnName.empty() || filename.empty() || numBlocks.empty() || fileSize.empty() || blockSize.empty() || owner.empty()) {
-            response << "{\"status\": \"error\", \"reason\": \"ndn_name, file_name, num_blocks, owner and block_size are required arguments.\"}";
+        if (ndnName.empty() || filename.empty() || numBlocks.empty() || fileSize.empty() || blockSize.empty()) {
+            response << "{\"status\": \"error\", \"reason\": \"ndn_name, file_name, num_blocks and block_size are required arguments.\"}";
         }
         else {
-            string status = fileDownloader.getFile(ndnName, stoi(numBlocks), filename, stoi(fileSize), stoi(blockSize), owner);
+            string status = fileDownloader.getFile(ndnName, stoi(numBlocks), filename, stoi(fileSize), stoi(blockSize));
             response << status;
         }
     }

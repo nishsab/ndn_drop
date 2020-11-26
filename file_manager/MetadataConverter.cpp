@@ -13,7 +13,7 @@ using boost::property_tree::write_json;
 
 string MetadataConverter::buildJson(vector<FileInfo> fileInfos) {
     if (fileInfos.empty()) {
-        return "{\"files\":[]}";
+        return "{\"files\":[], \"status\": \"success\"}";
     }
     ptree root;
     ptree filesList;
@@ -26,9 +26,11 @@ string MetadataConverter::buildJson(vector<FileInfo> fileInfos) {
         fileTree.put("size", fileInfo.size);
         fileTree.put("num_segs", fileInfo.numSegs);
         fileTree.put("block_size", fileInfo.blockSize);
+        fileTree.put("url_path", fileInfo.getUrlPath());
         filesList.push_back(make_pair("", fileTree));
     }
     root.add_child("files", filesList);
+    root.put("status", "success");
     ostringstream buf;
     write_json(buf, root);
     return buf.str();

@@ -33,7 +33,7 @@ public:
                    string schemaConfPath,
                    string pibLocator,
                    string tpmLocator);
-    string getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize, string owner);
+    string getFile(string ndnName, int numBlocks, string filename, int fileSize, int blockSize);
 
 private:
     void handleFileResponse(const Interest&, const Data& data, CallbackContainer *callbackContainer, int blockid, int blockSize);
