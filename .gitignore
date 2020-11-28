@@ -4,3 +4,4 @@ cmake-build-debug/
 *~
 *.log
 ndn_drop
+ndn_drop_gui/__pycache__

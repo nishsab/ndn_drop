@@ -16,7 +16,7 @@ using namespace ndn;
 
 class NeighborList {
 public:
-    NeighborList(int heartbeatWindow);
+    NeighborList(int heartbeatWindow, string node);
     void stop();
     vector<string> listNeighbors();
     void addNeighbor(string neighborName);
@@ -34,6 +34,7 @@ private:
     mutex neighborListLock;
     thread neighborListThread;
     bool running;
+    string node;
 };
 
 #endif //NDN_DROP_NEIGHBORLIST_H
