@@ -71,7 +71,9 @@ void NeighborList::deserializeList(std::string blob) {
     for (int i=0; i<blobs.size(); i++) {
         vector<string> nameCount = Utils::split(blobs[i], ':');
         if (nameCount.size() == 2) {
-            addNeighbor(nameCount[0], stoi(nameCount[1]));
+            if (nameCount[0].compare(node) != 0) {
+                addNeighbor(nameCount[0], stoi(nameCount[1]));
+            }
         }
     }
     neighborListLock.unlock();
@@ -89,8 +91,9 @@ void NeighborList::stop() {
     neighborListThread.join();
 }
 
-NeighborList::NeighborList (int heartbeatWindow) {
+NeighborList::NeighborList(int heartbeatWindow, string node) {
     running = true;
     this->heartbeatWindow = heartbeatWindow;
     neighborListThread = thread(&NeighborList::monitorNeighborList, this);
+    this->node = node;
 }

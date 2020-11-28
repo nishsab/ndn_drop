@@ -69,7 +69,7 @@ public:
     }
 
     MyController(string home, string node, Conf conf)
-    : neighborList(conf.heartbeatWindow),
+    : neighborList(conf.heartbeatWindow, node),
       neighborListRepo(home, node, &neighborList),
       neighborListRequestor(conf.heartbeatWindow, home, node, &neighborList),
       directoryManager(conf.outboundDirectory,
